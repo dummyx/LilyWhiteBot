@@ -13,6 +13,8 @@ const path = require('path');
 const request = require('request');
 const sharp = require('sharp');
 const winston = require('winston');
+const imageType = require('image-type');
+const https = require('axios');
 
 let options = {};
 let servemedia;
@@ -26,10 +28,21 @@ const USERAGENT = `LilyWhiteBot/${pkg.version} (${pkg.repository})`;
  * @param {string} name 文件名
  * @returns {string} 新文件名
  */
-const generateFileName = (url, name) => {
+const generateFileName = async (url, name) => {
     let extName = path.extname(name || '');
     if (extName === '') {
         extName = path.extname(url || '');
+    }
+    if (extName === '') {
+        await axios.get(url, {
+            responseType: 'arraybuffer', 
+            responseEncoding: 'binary', 
+        }).then(function (response) {
+            //console.log(response);
+            let type = imageType(response.data);
+            console.log(type)
+            extName = '.' + type.ext;
+        })
     }
     if (extName === '.webp') {
         extName = '.png';
